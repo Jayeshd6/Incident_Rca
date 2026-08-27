@@ -40,9 +40,9 @@ flowchart TD
     ExplanationGen --> FinalAnswer([Final Answer])
 
     %% Styling
-    classDef default fill:#f9f9fb,stroke:#d1d5db,stroke-width:1px;
-    classDef entryExit fill:#eff6ff,stroke:#3b82f6,stroke-width:2px;
-    classDef nodeGroup fill:#f8fafc,stroke:#94a3b8,stroke-width:1px,stroke-dasharray: 5 5;
+    classDef default fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;
+    classDef entryExit fill:#0c4a6e,stroke:#38bdf8,stroke-width:2px,color:#f0f9ff;
+    classDef nodeGroup fill:#0f172a,stroke:#475569,stroke-width:1px,stroke-dasharray: 5 5,color:#94a3b8;
     
     class User,FinalAnswer entryExit;
     class NodeTools,PyMethods nodeGroup;
