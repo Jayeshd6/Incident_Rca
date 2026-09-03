@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { config } from "./core/config";
+import debugRoutes from "./api/routes/debug.routes";
 import ingestRoutes from "./api/routes/ingest.routes";
 
 const app = express();
@@ -32,6 +33,7 @@ app.get("/health/python", async (req, res) => {
 });
 
 app.use("/ingest", ingestRoutes);
+app.use("/debug", debugRoutes);
 
 app.listen(config.NODE_PORT, () => {
   console.log(`Node backend running on port ${config.NODE_PORT}`);

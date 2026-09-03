@@ -123,4 +123,7 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_api_failures_service_timestamp
   ON api_failures(service, timestamp);
+
+  CREATE VIEW IF NOT EXISTS trace_spans AS SELECT * FROM traces;
+  CREATE VIEW IF NOT EXISTS deployment_events AS SELECT * FROM deployments;
 `);
