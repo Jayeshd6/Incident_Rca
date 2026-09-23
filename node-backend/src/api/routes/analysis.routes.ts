@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { telemetryRepository } from "../../db/repositories/telemetry.repository";
 import { normalizeLogs } from "../../analysis/logAnalysis/logNormalizer";
+import { groupErrorLogs } from "../../analysis/logAnalysis/logGrouper";
 
 const router = Router();
 
@@ -22,6 +23,18 @@ const querySchema = z.object({
     .positive("limit must be a positive integer")
     .max(1000, "limit cannot exceed 1000")
     .optional()
+});
+
+const logGroupsQuerySchema = z.object({
+  service: z.string().min(1, "service is required"),
+  startTime: timestampSchema,
+  endTime: timestampSchema,
+  limit: z.coerce
+    .number()
+    .int("limit must be an integer")
+    .positive("limit must be a positive integer")
+    .max(100, "limit cannot exceed 100")
+    .default(20)
 });
 
 router.get("/logs/normalized", (req, res) => {
@@ -52,4 +65,33 @@ router.get("/logs/normalized", (req, res) => {
   });
 });
 
+router.get("/logs/groups", (req, res) => {
+  const parsed = logGroupsQuerySchema.safeParse(req.query);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "Invalid query parameters",
+      details: parsed.error.flatten()
+    });
+  }
+
+  const { service, startTime, endTime, limit } = parsed.data;
+
+  const logs = telemetryRepository.getLogs({
+    service,
+    startTime,
+    endTime
+  });
+
+  const normalizedLogs = normalizeLogs(logs);
+  const groups = groupErrorLogs(normalizedLogs);
+
+  return res.json({
+    query: parsed.data,
+    count: groups.length,
+    groups: groups.slice(0, limit)
+  });
+});
+
 export default router;
+
