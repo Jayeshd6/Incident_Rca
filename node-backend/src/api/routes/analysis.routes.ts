@@ -3,6 +3,7 @@ import { z } from "zod";
 import { telemetryRepository } from "../../db/repositories/telemetry.repository";
 import { normalizeLogs } from "../../analysis/logAnalysis/logNormalizer";
 import { groupErrorLogs } from "../../analysis/logAnalysis/logGrouper";
+import { detectLogSpike } from "../../analysis/logAnalysis/logSpikeDetector";
 
 const router = Router();
 
@@ -35,6 +36,12 @@ const logGroupsQuerySchema = z.object({
     .positive("limit must be a positive integer")
     .max(100, "limit cannot exceed 100")
     .default(20)
+});
+
+const logEvidenceQuerySchema = z.object({
+  service: z.string().min(1, "service is required"),
+  startTime: timestampSchema,
+  endTime: timestampSchema
 });
 
 router.get("/logs/normalized", (req, res) => {
@@ -93,5 +100,24 @@ router.get("/logs/groups", (req, res) => {
   });
 });
 
+router.get("/logs/evidence", (req, res) => {
+  const parsed = logEvidenceQuerySchema.safeParse(req.query);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "Invalid query parameters",
+      details: parsed.error.flatten()
+    });
+  }
+
+  const evidence = detectLogSpike(parsed.data);
+
+  return res.json({
+    query: parsed.data,
+    evidence
+  });
+});
+
 export default router;
+
 
